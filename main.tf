@@ -1,3 +1,11 @@
+data "aws_caller_identity" "current" {}
+
+data "aws_region" "current" {}
+
+resource "aws_secretsmanager_secret" "public_key" {
+  name = "bastion-host-public-key"
+}
+
 resource "aws_kms_key" "key" {
   enable_key_rotation = var.kms_enable_key_rotation
   tags                = merge(var.tags)
@@ -132,6 +140,10 @@ data "aws_iam_policy_document" "bastion_host_policy_document" {
     resources = [aws_kms_key.key.arn]
   }
 
+  statement {
+    actions   = ["secretsmanager:UpdateSecret"]
+    resources = [aws_secretsmanager_secret.public_key.arn]
+  }
 }
 
 resource "aws_iam_policy" "bastion_host_policy" {
